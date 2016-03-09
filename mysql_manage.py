@@ -1,7 +1,10 @@
 #! /usr/bin/python
 #coding:utf8
 import MySQLdb,sys
-
+'''
+author by zyb
+use to manage mysql
+create time 2016-3-9
 
 def mysql_connect(sql):
     conn = MySQLdb.connect(host='myhost',user='mysqluser',passwd='mysqlpassword',db='mysqldb')
