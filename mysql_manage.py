@@ -19,8 +19,8 @@ def mysql_connect(sql):
 
 def dns_select():
     domain_name = raw_input("input the domain_name [www]: ")
-    #zone_name = raw_input("input the zone_name [wecash.net]: ")
-    zone_name = "wecash.net"
+    #zone_name = raw_input("input the zone_name [abc.net]: ")
+    zone_name = "abc.net"
     select_sql= "select host,zone,data,type from dns_records where host='"+domain_name+"' and zone='"+zone_name+"'"
     #print select_sql
     return mysql_connect(select_sql)
@@ -38,8 +38,8 @@ def dns_insert():
     domain_type = "A"
     try:
         domain_name = raw_input("please input the domain name [www]: ")
-        #zone_name = raw_input("please input the zone name [wecash.net]: ")
-        zone_name = "wecash.net"
+        #zone_name = raw_input("please input the zone name [abc.net]: ")
+        zone_name = "abc.net"
         record = record_exist(zone_name,domain_name)
         if record:
                 error_print("The record already exist!")
@@ -62,8 +62,8 @@ def dns_insert():
 def dns_update():
     try:
         domain_name = raw_input("please input want to change domain name which [www]: ")
-        #zone_name = raw_input("please input the zone name [wecash.net]: ")
-        zone_name = 'wecash.net'
+        #zone_name = raw_input("please input the zone name [abc.net]: ")
+        zone_name = 'abc.net'
         record_in = record_exist(zone_name,domain_name)
         if not record_in:
                 error_print("the dns record was not found ,please check your input,or insert this record")
@@ -92,8 +92,8 @@ def dns_update():
 def dns_delete():
     try:
         domain_name = raw_input("please input the domain name you want delete [www]: ")
-        #zone_name = raw_input("please input the zone name you want to delete [wecash.net]: ")
-        zone_name = 'wecash.net'
+        #zone_name = raw_input("please input the zone name you want to delete [abc.net]: ")
+        zone_name = 'abc.net'
         #ip_address = raw_input("please input the domain's ip address [192.168.56.1]: ")
     except KeyboardInterrupt:
         error_print("abort input and back to manage!")
