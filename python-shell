@@ -1,0 +1,100 @@
+#! /usr/bin/env python
+#coding:utf-8
+'''
+author by: zyb
+create time: 2015-8-7
+'''
+import re,sys,os
+
+base_path=os.path.dirname(os.path.abspath(__file__))
+mylist_file=os.path.join(base_path,"my_iplist")
+
+#处理日志文件
+def log_ass(log_name):
+try:
+   f = open(log_name, "r")
+except IOError:
+   print "文件不存在"
+except:
+   print "程序错误"
+arr={}
+lines = f.readlines()
+for line in lines:
+   ipaddr = re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+     match = ipaddr.findall(line)
+            for ip in match:
+                if ip not in arr:
+                        arr.append(ip)
+                else:
+                        pass
+        f.close()
+        return arr
+
+#获取自己的ip
+def save_mylist():
+try:
+   f_list = open(mylist_file, "r")
+except IOError:
+   print "文件不存在"
+except:
+   print "程序错误"
+my_list=[]
+ip_lines = f_list.readlines()
+for ip_line in ip_lines:
+ip_line=ip_line.strip()
+my_list.append(ip_line)
+f_list.close()
+return my_list
+
+#主函数
+def main(loglist,mylist):
+for i in loglist:
+if i not in mylist:
+print i
+else:
+pass
+
+if __name__ == '__main__':
+py_file=sys.argv[0]
+#print len(sys.argv)
+if len(sys.argv) == 1:
+print "example: python %s log_name" %py_file
+sys.exit(1)
+else:
+log_file=sys.argv[1]
+logs_list=log_ass(log_file)
+#print logs_list
+save_list=save_mylist()
+if len(logs_list) !=0 and len(save_list) !=0:
+main(logs_list,save_list)
+
+
+shell：
+#！ /bin/bash
+
+#author by zyb.
+base_path=`pwd`
+myip_list="$base_path/my_iplist"
+
+main(){
+ cat $log_file |grep -o "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}" |sort |uniq > /tmp/log_ip
+ while read line
+ do
+egrep -iq $line $myip_list
+if [ $? -ne 0 ];then
+echo $line
+fi
+ done < /tmp/log_ip
+ rm -rf /tmp/log_ip 
+}
+
+case $1 in
+      -f)
+log_file=$2
+main
+;;
+      *)
+echo "for example---> `basename $0` -f log_name."
+;;
+esac 
+
