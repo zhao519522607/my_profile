@@ -17,7 +17,7 @@ end_time = datetime.datetime.now()
 timestamp = str(int(time.time())) + "000000000"
 start_time = end_time - datetime.timedelta(minutes=15)
 #单机的连接方式
-#client = InfluxDBClient('localhost', 8086, 'crawler1', 'OGNjNWY5Y253', 'operator')
+#client = InfluxDBClient('host', port, 'user1', 'password', 'dbname')
 #集群的连接方式
 operator_cc = InfluxDBClusterClient(hosts = [('1.1.1.1', 8080),
                                              ('2.2.2.2', 8080),
