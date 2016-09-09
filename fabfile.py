@@ -5,7 +5,7 @@ import datetime,os
 
 yesterday = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
 env.hosts = ["32.6.11.21", "15.8.29.2"]
-env.passwords = {'root@32.6.11.21':'12345', 'root@15.8.29.2:22':'12345'}
+env.passwords = {'root@32.6.11.21:22':'12345', 'root@15.8.29.2:22':'12345'}
 def total():
         arg = env.host.split('.')[3]
         file = "/data/shell/files/total_" + arg 
