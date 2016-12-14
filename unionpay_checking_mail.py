@@ -32,7 +32,7 @@ username=""
 password=""
 time = (datetime.date.today () - datetime.timedelta (days=16)).strftime ("%Y-%m-%d")
 my_client_id="27551"
-my_username="wecash_private_url"
+my_username="_private_url"
 my_password="qwefpijanvijsnviaiou416541651"
 token = "&account=" + my_client_id + "&username=" + my_username + "&password=" + my_password 
 http_post_query="http://127.0.0.1:8080/biz-portal/private/query-bank-card-bill"
