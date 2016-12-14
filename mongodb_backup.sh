@@ -13,7 +13,7 @@ work_path=`pwd`
 mkdir $work_path/collection
 dump_command="/usr/bin/mongoexport -u shanxin -p jpua7HWe -d pandora"
 #collections=" touristPhraseData touristCreditData SYBlacklist"
-collections="touristPhraseData touristCreditData SYBlacklist tbSuccessfulName loginNameParallelismTbName purui_test buyRiskResult taoBaoSecurity addressResult phoneResult idCardResult cmbResult jingDongHtml errorInput wecashTaoBao blacklist jingDongResult tbStResultHTml authValid wecashJingDong tbLoginHtmlOne tbOfflineResult system.users bcomResult unionpayStats authorizationUserInfo system.indexes"
+collections="touristPhraseData touristCreditData SYBlacklist tbSuccessfulName loginNameParallelismTbName purui_test buyRiskResult taoBaoSecurity addressResult phoneResult idCardResult cmbResult jingDongHtml errorInput TaoBao blacklist jingDongResult tbStResultHTml authValid JingDong tbLoginHtmlOne tbOfflineResult system.users bcomResult unionpayStats authorizationUserInfo system.indexes"
 $dump_command -c registRiskResult -o $work_path/collection/registRiskResult.dat &
 wait
 gzip $work_path/collection/registRiskResult.dat
