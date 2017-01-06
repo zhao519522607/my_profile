@@ -1,0 +1,115 @@
+client:
+[catalina_out]
+type = "LogstreamerInput"
+#splitter = "TokenSplitter"
+splitter = "catalina_out_spliter"
+log_directory = "/data/logs"
+file_match = "cralwer.log"
+#file_match = 'catalina.?(?P<Index>\d{4}\-\d{2}\-\d{2}).log(.gz)?'
+priority =["^Index"]
+
+
+[catalina_out_PayloadEncoder]
+type = "PayloadEncoder"
+append_newlines = false 
+
+
+[catalina_out_spliter]
+type = "RegexSplitter"
+delimiter = '\n(201)'
+delimiter_eol = false
+
+
+[catalina_out_output]
+type = "HttpOutput"
+message_matcher = "TRUE"
+address = "http://1.1.1.1:10"
+encoder = "catalina_out_PayloadEncoder"
+username = " "
+password = " "
+
+------------------------------------------
+server:
+[catalina_out]
+type = "HttpListenInput"
+address = "0.0.0.0:10"
+auth_type = "Basic"
+username = ""
+password = ""
+decoder = "catalina_out_logparser"
+
+
+[catalina_out_logparser]
+type = "MultiDecoder"
+subs = ["catalina_out_decoder"]
+#cascade_strategy = "all"
+log_sub_errors = false
+
+
+[catalina_out_decoder]
+type = "PayloadRegexDecoder"
+match_regex = '(?P<Timestamp>\d{4}-[0-9]{2}-\d{2} \d{2}\:\d{2}\:\d{2}),(?P<Minseconds>\d{3}) (?P<Severity>[A-Z]+) (?P<ThreadId>\[[a-zA-Z0-9-]+\]) (?P<Package>[a-zA-Z0-9\.]+) (?P<ClassL    ine>\[[a-zA-Z0-9]+\.[a-zA-Z0-9]+\:[0-9]+\]) (?P<Message>[\s\S\x{4e00}-\x{9fa5}]*)'
+timestamp_layout = "2006-01-02 15:04:05"
+timestamp_location = "Asia/Shanghai"
+log_errors = false 
+
+
+    [catalina_out_decoder.severity_map]
+    WARN = 3
+    ERROR = 2  
+
+
+    [catalina_out_decoder.message_fields]
+    Type = "catalina_out"
+    Logger = "heka(catalina_out, tomcat-8180)"
+    Message = "%Message%"
+#    Date|json = "%Date%"
+    ThreadId = "%ThreadId%"
+    Package = "%Package%"
+    ClassLine = "%ClassLine%"
+    Payload = ""
+
+
+[catalina_out_ESJsonEncoder]
+type = "ESJsonEncoder"
+es_index_from_timestamp = true
+index = "heka-%{Type}-%{%Y.%m.%d}"
+type_name = "%{Type}"
+
+
+[catalina_out_ElasticSearchOutput]
+type = "ElasticSearchOutput"
+message_matcher = "Type == 'catalina_out'"
+server = "http://127.0.0.1:9200"
+flush_interval = 50
+flush_count = 100
+encoder = "catalina_out_ESJsonEncoder"
+
+
+[catalina_out_alert_output]
+type = "SmtpOutput"
+message_matcher = "Type == 'catalina_out' && Fields[Message] =~ /[[:graph:]]HTTP RESPONSE CODE[[:graph:]]: 50[[:alnum:]]{1}/"
+subject = "Log Monitor"
+send_from = " "
+send_to = [" "]
+auth = "Plain"
+user = ""
+password = ""
+host = "smtp.exmail.qq.com:25"
+encoder = "catalina_out_ESJsonEncoder"
+
+
+# PLEASE DO NOT REMOVE MESSAGE BELOW!!!!!!!
+###################################################
+#[LogOutput]
+#message_matcher = "Type == 'catalina_out'"
+#message_matcher = "Type == 'catalina_out' && Fields[Message] =~ /[[:graph:]]HTTP RESPONSE CODE[[:graph:]]: 50[[:alnum:]]{1}/"
+#message_matcher = "Type == 'catalina_out' && Fields[Message] =~ /[[:graph:]]HTTP RESPONSE CODE[[:graph:]]: [45]0[[:alnum:]]{1}/"
+#message_matcher = "TRUE"
+#encoder = "catalina_out_ESJsonEncoder"
+##encoder = "PayloadEncoder"
+
+
+##[PayloadEncoder]
+##append_newlines = false
+###################################################
