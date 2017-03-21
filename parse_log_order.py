@@ -372,7 +372,7 @@ def main(dirname,logger=None):
     parse_log_handle.init_mysql_pool()  # 初始化Mysql 连接池
 
     if parse_log_handle is not None:
-        parse_log_handle.process_mysql_concurrent_data("/data1/fengming/log/general-bak/order_test/order.log")
+        parse_log_handle.process_mysql_concurrent_data("/data1/log/general-bak/order_test/order.log")
 
     # sort_list = sorted(file_list)
     #
