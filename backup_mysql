@@ -1,0 +1,61 @@
+mysql备份：
+逻辑备份：
+-d 只备份表结构，备份文件是SQL语句形式；只备份创建表的语句，插入的数据不备份
+-A 导出所有数据库
+-B 导出指定数据库
+-l 只读锁表
+-R 导出存储过程和函数
+-q 不缓冲查询，直接导出到标准输出。默认为打开状态，使用--skip-quick取消该选项
+--ignore-table 不导出指定表。指定忽略多个表时，需要重复多次，每次一个表。每个表必须同时指定数据库和表名
+--max_allowed_packet 服务器发送和接受的最大包长度
+mysqldump -h ip -P port -u user -p password –single-transaction –master-data=2 数据库名字 > 数据库名字.sql
+mysqldump -h ip -P port -u user -p password –single-transaction –master-data=2 数据库名字 表名字 > 表名字.sql
+mysqlbinlog --start-datetime="2016-11-18 6:10:34" --stop-datetime="2016-11-18 6:11:13" /data/mysql/mysql3306/logs/mysql-bin.000003 |mysql -uroot -p123456
+mysqlbinlog --start-position=259 --stop-position=561 /data/mysql/mysql3306/logs/mysql-bin.000003 |mysql -uroot -p123456
+mysqlbinlog --read-from-remote-server --raw --host=192.168.244.145 --port=3306 --user=repl --password=repl --stop-never mysql-bin.000001
+--read-from-remote-server：用于备份远程服务器的binlog。如果不指定该选项，则会查找本地的binlog
+--raw：binlog日志会以二进制格式存储在磁盘中，如果不指定该选项，则会以文本形式保存
+--user：复制的MySQL用户，只需要授予REPLICATION SLAVE权限
+--stop-never：mysqlbinlog可以只从远程服务器获取指定的几个binlog，也可将不断生成的binlog保存到本地。指定此选项，代表只要远程服务器不关闭或者连接未断开，mysqlbinlog就会不断的复制远程服务器上的binlog
+mysql-bin.000001：代表从哪个binlog开始复制
+
+物理备份：
+1. 备份mysql的数据库目录
+2. 使用Percona-XtraBackup工具，优势是，既可以全量备份，也可以增量备份，缺点是只能在数据库机器执行，异地备份需要完成后再上传
+/bin/innobackupex --defaults-file=/etc/my.cnf --user=root --password=mysql --port 3306  --socket=/tmp/mysqld.sock --stream=tar ./ | ssh mysql@192.168.8.63 \ "cat - > /backup_center/$(date +%Y-%m-%d_%H:%m:%S).tar"
+下载地址： https://www.percona.com/downloads/XtraBackup/LATEST/
+全量备份 innobackupex --defaults-file=/etc/my.cnf --user=root --password=123456 /backup/
+恢复 innobackupex --copy-back /backup/
+增量备份 innobackupex --incremental /backup --incremental-basedir=BASEDIR
+在执行过增量备份之后再一次进行增量备份时，其–incremental-basedir应该指向上一次的增量备份所在的目录
+innobackupex --apply-log --redo-only BASE-DIR --incremental-dir=INCREMENTAL-DIR-1
+innobackupex --copy-back INCREMENTAL-DIR-1
+------------------------------------------------------
+binlog备份脚本
+#!/bin/sh
+BACKUP_BIN=/usr/bin/mysqlbinlog
+LOCAL_BACKUP_DIR=/backup/binlog/
+BACKUP_LOG=/backup/binlog/backuplog
+REMOTE_HOST=192.168.244.145
+REMOTE_PORT=3306
+REMOTE_USER=repl
+REMOTE_PASS=repl
+FIRST_BINLOG=mysql-bin.000001
+#time to wait before reconnecting after failure
+SLEEP_SECONDS=10
+##create local_backup_dir if necessary
+mkdir -p ${LOCAL_BACKUP_DIR}
+cd ${LOCAL_BACKUP_DIR}
+## 运行while循环，连接断开后等待指定时间，重新连接
+while :
+do
+ if [ `ls -A "${LOCAL_BACKUP_DIR}" |wc -l` -eq 0 ];then
+ LAST_FILE=${FIRST_BINLOG}
+ else
+ LAST_FILE=`ls -l ${LOCAL_BACKUP_DIR} | grep -v backuplog |tail -n 1 |awk '{print $9}'`
+ fi
+ ${BACKUP_BIN} --raw --read-from-remote-server --stop-never --host=${REMOTE_HOST} --port=${REMOTE_PORT} --user=${REMOTE_USER} --password=${REMOTE_PASS} ${LAST_FILE}
+ echo "`date +"%Y/%m/%d %H:%M:%S"` mysqlbinlog停止，返回代码：$?" | tee -a ${BACKUP_LOG}
+ echo "${SLEEP_SECONDS}秒后再次连接并继续备份" | tee -a ${BACKUP_LOG} 
+ sleep ${SLEEP_SECONDS}
+done
